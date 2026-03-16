@@ -1,5 +1,5 @@
 module "rds" {
-  source = "../../modules/rds"
+  source = "../../../modules/rds"
 
   identifier = "dev-mysql"
 
