@@ -22,7 +22,7 @@ locals {
 
     # kubectl
     KUBECTL_VERSION="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
-    curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    curl -L -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     chmod +x /usr/local/bin/kubectl
 
     # Helm
@@ -30,7 +30,7 @@ locals {
 
     # Terraform
     TERRAFORM_VERSION="1.11.4"
-    curl -L -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+    curl -L -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip"
     unzip -q /tmp/terraform.zip -d /usr/local/bin
     chmod +x /usr/local/bin/terraform
 
