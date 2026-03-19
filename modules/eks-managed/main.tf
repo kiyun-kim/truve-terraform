@@ -1,3 +1,37 @@
+data "aws_iam_policy_document" "ebs_csi_driver_assume_role" {
+  statement {
+    sid    = "EKSAddonPodsAssumeRole"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"
+    ]
+  }
+}
+
+resource "aws_iam_role" "ebs_csi_driver" {
+  name               = "${var.cluster_name}-ebs-csi-driver-role"
+  assume_role_policy = data.aws_iam_policy_document.ebs_csi_driver_assume_role.json
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.cluster_name}-ebs-csi-driver-role"
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+  role       = aws_iam_role.ebs_csi_driver.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
@@ -33,8 +67,14 @@ module "eks" {
 
     # EBS 볼륨을 Pod에 마운트할 수 있게 하는 CSI Driver
     aws-ebs-csi-driver = {
-      most_recent    = true
-      before_compute = true
+      most_recent = true
+
+      pod_identity_association = [
+        {
+          role_arn        = aws_iam_role.ebs_csi_driver.arn
+          service_account = "ebs-csi-controller-sa"
+        }
+      ]
     }
   }
 
@@ -45,8 +85,8 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   # EKS Access Entry 기반 권한 관리
-  # - cluster creator: 최초 클러스터 생성 IAM 주체를 admin으로 등록
-  # - ops EC2: SSM으로 접속한 운영용 EC2에서 kubectl/helm 사용 가능하도록 admin 권한 부여
+  # cluster creator: 최초 클러스터 생성 IAM 주체를 admin으로 등록
+  # ops EC2: SSM으로 접속한 운영용 EC2에서 kubectl/helm 사용 가능하도록 admin 권한 부여
   access_entries = merge(
     {
       ops_ec2 = {
@@ -72,4 +112,8 @@ module "eks" {
   eks_managed_node_groups = var.node_groups
 
   tags = var.tags
+
+  depends_on = [
+    aws_iam_role_policy_attachment.ebs_csi_driver
+  ]
 }
