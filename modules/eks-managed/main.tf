@@ -82,7 +82,19 @@ module "eks" {
   }
 
   # API 서버 퍼블릭 접근 허용
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = true
+
+  cluster_security_group_additional_rules = {
+    ops_ec2_https = {
+      description              = "Allow ops EC2 to access EKS API"
+      protocol                 = "tcp"
+      from_port                = 443
+      to_port                  = 443
+      type                     = "ingress"
+      source_security_group_id = var.ops_ec2_security_group_id
+    }
+  }
 
   # 클러스터 생성한 IAM 사용자를 자동 admin으로 등록
   enable_cluster_creator_admin_permissions = true

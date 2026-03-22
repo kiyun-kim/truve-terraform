@@ -16,6 +16,8 @@ module "eks" {
   # 보통 private subnet 사용
   control_plane_subnet_ids = module.vpc.private_subnets
 
+  ops_ec2_security_group_id = module.ops_ec2.security_group_id
+
   # EKS Managed Node Group 설정
   node_groups = {
     # 기본 노드 그룹

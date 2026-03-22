@@ -23,6 +23,11 @@ variable "control_plane_subnet_ids" {
   type        = list(string)
 }
 
+variable "ops_ec2_security_group_id" {
+  description = "Security group ID of ops EC2 allowed to access the EKS API"
+  type        = string
+}
+
 variable "node_groups" {
   description = "EKS managed node groups"
   type        = any
