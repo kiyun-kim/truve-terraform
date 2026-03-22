@@ -15,9 +15,9 @@ data "aws_eks_cluster_auth" "this" {
 }
 
 data "aws_eks_cluster" "this" {
-  name = "dev-eks-v2"
+  name = "truve-eks-dev"
 }
 
 data "aws_eks_cluster_auth" "this" {
-  name = "dev-eks-v2"
+  name = "truve-eks-dev"
 }
