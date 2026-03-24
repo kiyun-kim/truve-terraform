@@ -63,8 +63,17 @@ resource "aws_iam_role_policy" "ops_access" {
           "ec2:DescribeRouteTables",
           "ec2:DescribeNatGateways",
           "ec2:DescribeInternetGateways",
+          #### EKS 노드에서 ALB 컨트롤러가 Route53 리소스 조회할 때 필요
+          "route53:GetHostedZone",
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets",
+          #### EKS 노드에서 ALB 컨트롤러가 ELB 리소스 조회할 때 필요
           "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:DescribeListeners",
           "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTags",
+          #### EKS 노드에서 Cluster Autoscaler가 Auto Scaling Group 조회할 때 필요
           "autoscaling:DescribeAutoScalingGroups"
         ]
         Resource = "*"
