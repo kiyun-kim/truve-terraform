@@ -16,7 +16,7 @@ module "ops_ec2" {
       git \
       jq \
       wget \
-      curl \
+      tree \
       unzip \
       tar \
       gzip \
