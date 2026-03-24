@@ -18,17 +18,78 @@ module "eks" {
 
   ops_ec2_security_group_id = module.ops_ec2.security_group_id
 
+  ################################################
   # EKS Managed Node Group 설정
+  # 분리 기준
+  #   - system: 클러스터 운영용 (ALB Controller, Karpenter 등)
+  #   - cicd: CI/CD 워크로드 전용
+  #   - monitoring: Prometheus/Grafana/Loki 등
+  ################################################
   node_groups = {
-    # 기본 노드 그룹
     system = {
       ami_type       = "AL2023_ARM_64_STANDARD"
-      instance_types = ["m6g.large"]
+      instance_types = ["t4g.large"]
       capacity_type  = "ON_DEMAND"
 
       min_size     = 1
       max_size     = 2
       desired_size = 1
+
+      labels = {
+        workload = "system"
+      }
+
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+    }
+
+    cicd = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["t3.large"]
+      capacity_type  = "ON_DEMAND"
+
+      min_size     = 0
+      max_size     = 2
+      desired_size = 0
+
+      labels = {
+        workload = "cicd"
+      }
+
+      taints = [
+        {
+          key    = "workload"
+          value  = "cicd"
+          effect = "NO_SCHEDULE"
+        }
+      ]
+
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+    }
+
+    monitoring = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["t3.large"]
+      capacity_type  = "ON_DEMAND"
+
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
+
+      labels = {
+        workload = "monitoring"
+      }
+
+      taints = [
+        {
+          key    = "workload"
+          value  = "monitoring"
+          effect = "NO_SCHEDULE"
+        }
+      ]
 
       iam_role_additional_policies = {
         AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
