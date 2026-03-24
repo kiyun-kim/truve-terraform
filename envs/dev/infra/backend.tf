@@ -13,8 +13,8 @@ terraform {
     key    = "dev/infra/terraform.tfstate"
     region = "ap-northeast-2"
     # dynamodb_table = "truve-dev-tf-lock"
-    use_lockfile = true
     encrypt      = true
-    profile      = "truve-admin"
+    use_lockfile = true
+    # profile      = "truve-admin"
   }
 }

@@ -73,6 +73,36 @@ resource "aws_iam_role_policy" "ops_access" {
   })
 }
 
+resource "aws_iam_role_policy" "terraform_backend_access" {
+  name = "${var.name}-terraform-backend-access"
+  role = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "TerraformStateBucketList"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = "arn:aws:s3:::truve-dev-tfstate"
+      },
+      {
+        Sid    = "TerraformStateObjectAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "arn:aws:s3:::truve-dev-tfstate/*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "this" {
   name = "${var.name}-instance-profile"
   role = aws_iam_role.this.name

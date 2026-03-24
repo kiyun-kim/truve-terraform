@@ -20,8 +20,8 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-northeast-2"
-  profile = "truve-admin"
+  region = "ap-northeast-2"
+  # profile = "truve-admin"
 }
 
 provider "kubernetes" {
