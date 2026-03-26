@@ -284,8 +284,31 @@ data "aws_iam_policy_document" "karpenter_controller" {
 }
 
 resource "aws_iam_policy" "karpenter_controller" {
-  name   = "${local.karpenter_controller_role}-policy"
-  policy = data.aws_iam_policy_document.karpenter_controller.json
+  name = "${local.karpenter_controller_role}-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "KarpenterInstanceProfileManagement"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateInstanceProfile",
+          "iam:TagInstanceProfile",
+          "iam:AddRoleToInstanceProfile",
+          "iam:RemoveRoleFromInstanceProfile",
+          "iam:DeleteInstanceProfile",
+          "iam:GetInstanceProfile"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter_controller" {
+  role       = aws_iam_role.karpenter_controller.name
+  policy_arn = aws_iam_policy.karpenter_controller.arn
 }
 
 resource "aws_iam_role_policy_attachment" "karpenter_controller" {

@@ -105,7 +105,7 @@ module "eks" {
       }
     }
 
-    kafka = {
+    messaging = {
       ami_type       = "AL2023_ARM_64_STANDARD"
       instance_types = ["m6g.large"]
       capacity_type  = "ON_DEMAND"
@@ -115,39 +115,13 @@ module "eks" {
       desired_size = 3
 
       labels = {
-        workload = "kafka"
+        workload = "messaging"
       }
 
       taints = [
         {
           key    = "workload"
-          value  = "kafka"
-          effect = "NO_SCHEDULE"
-        }
-      ]
-
-      iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      }
-    }
-
-    redis = {
-      ami_type       = "AL2023_ARM_64_STANDARD"
-      instance_types = ["m6g.large"] # ["r6g.large"]
-      capacity_type  = "ON_DEMAND"
-
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
-
-      labels = {
-        workload = "redis"
-      }
-
-      taints = [
-        {
-          key    = "workload"
-          value  = "redis"
+          value  = "messaging"
           effect = "NO_SCHEDULE"
         }
       ]
