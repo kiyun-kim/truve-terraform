@@ -5,18 +5,20 @@ module "eks" {
   cluster_version = "1.34"
 
   # VPC 모듈 output 참조
-  # module.vpc 값을 사용하므로 VPC가 먼저 생성된 뒤 EKS가 생성됨
-  vpc_id = module.vpc.vpc_id
+  vpc_id = module.vpc.vpc_id # module.vpc 값을 사용하므로 VPC가 먼저 생성된 뒤 EKS가 생성됨
 
   # Worker Node가 들어갈 서브넷
-  # 일반적으로 private subnet 사용
   subnet_ids = module.vpc.private_subnets
 
   # Control Plane ENI가 들어갈 서브넷
-  # 보통 private subnet 사용
   control_plane_subnet_ids = module.vpc.private_subnets
 
   ops_ec2_security_group_id = module.ops_ec2.security_group_id
+  ops_ec2_role_arn          = module.ops_ec2.iam_role_arn
+
+  node_security_group_tags = {
+    "karpenter.sh/discovery" = "truve-eks-dev" # local.cluster_name
+  }
 
   ################################################
   # EKS Managed Node Group 설정
@@ -155,8 +157,6 @@ module "eks" {
       }
     }
   }
-
-  ops_ec2_role_arn = module.ops_ec2.iam_role_arn
 
   tags = {
     Project     = "truve"

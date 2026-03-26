@@ -1,3 +1,7 @@
+############################################
+# EBS CSI Driver용 Assume Role Policy
+# EKS Pod Identity를 통해 EBS CSI Controller가 이 IAM Role을 사용할 수 있게 한다.
+############################################
 data "aws_iam_policy_document" "ebs_csi_driver_assume_role" {
   statement {
     sid    = "EKSAddonPodsAssumeRole"
@@ -15,6 +19,10 @@ data "aws_iam_policy_document" "ebs_csi_driver_assume_role" {
   }
 }
 
+############################################
+# EBS CSI Driver용 IAM Role
+# aws-ebs-csi-driver addon이 EBS 볼륨 생성/부착 권한을 사용하기 위한 역할
+############################################
 resource "aws_iam_role" "ebs_csi_driver" {
   name               = "${var.cluster_name}-ebs-csi-driver-role"
   assume_role_policy = data.aws_iam_policy_document.ebs_csi_driver_assume_role.json
@@ -27,11 +35,18 @@ resource "aws_iam_role" "ebs_csi_driver" {
   )
 }
 
+############################################
+# EBS CSI Driver 정책 연결
+# AWS 관리형 AmazonEBSCSIDriverPolicy를 연결한다.
+############################################
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   role       = aws_iam_role.ebs_csi_driver.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
+############################################
+# EKS Cluster
+############################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.37.2"
@@ -42,6 +57,9 @@ module "eks" {
   subnet_ids               = var.subnet_ids
   control_plane_subnet_ids = var.control_plane_subnet_ids
 
+  # Karpenter가 노드 생성 시 참조할 node security group 태그
+  node_security_group_tags = var.node_security_group_tags
+
   # CloudWatch 로그 사용 안함 (Loki 등 외부 스택 사용 예정)
   create_cloudwatch_log_group = false
 
@@ -51,13 +69,13 @@ module "eks" {
       most_recent = true # EKS 버전에 맞는 최신 버전 자동 선택
     }
 
-    # IRSA 대신 사용하는 새로운 IAM 연결 방식
+    # Pod Identity Agent (IRSA 대신 사용)
     eks-pod-identity-agent = {
       most_recent    = true
       before_compute = true # 노드 생성 전에 먼저 설치
     }
 
-    # Kubernetes 네트워크 라우팅 담당
+    # Kubernetes 네트워크 라우팅
     kube-proxy = {
       most_recent = true
     }
@@ -68,7 +86,7 @@ module "eks" {
       before_compute = true
     }
 
-    # EBS 볼륨을 Pod에 마운트할 수 있게 하는 CSI Driver
+    # EBS CSI Driver
     aws-ebs-csi-driver = {
       most_recent = true
 
@@ -100,8 +118,6 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   # EKS Access Entry 기반 권한 관리
-  # cluster creator: 최초 클러스터 생성 IAM 주체를 admin으로 등록
-  # ops EC2: SSM으로 접속한 운영용 EC2에서 kubectl/helm 사용 가능하도록 admin 권한 부여
   access_entries = merge(
     {
       ops_ec2 = {

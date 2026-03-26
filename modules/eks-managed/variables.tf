@@ -23,6 +23,12 @@ variable "control_plane_subnet_ids" {
   type        = list(string)
 }
 
+variable "node_security_group_tags" {
+  description = "Additional tags for the EKS node security group"
+  type        = map(string)
+  default     = {}
+}
+
 variable "ops_ec2_security_group_id" {
   description = "Security group ID of ops EC2 allowed to access the EKS API"
   type        = string

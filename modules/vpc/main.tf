@@ -29,7 +29,10 @@ module "vpc" {
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = "1"
-    Type                              = "private"
+
+    # Karpenter가 이 Subnet을 노드 생성 대상으로 인식하도록 태그 추가
+    "karpenter.sh/discovery" = "truve-eks-dev" # local.cluster_name 
+    Type                     = "private"
   }
 
   database_subnet_tags = {
